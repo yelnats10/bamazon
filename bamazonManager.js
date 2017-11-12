@@ -33,7 +33,7 @@ function start() {
             } else if (answer.userPickID === "Add to Inventory") {
                 add();
             } else if (answer.userPickID === "Add New Product") {
-                console.log("this worked 4");
+                addNew();
             }
 
 
@@ -62,7 +62,7 @@ function lowCount() {
         }
         rows.forEach(function (result) {
             console.log("ID " + result.item_id, "Item " + result.product_name, "Price $" + result.price, "Items left " + result.stock_quantity);
-           
+
         });
         console.log("");
         start();
@@ -70,7 +70,7 @@ function lowCount() {
 }
 
 function add() {
-    
+
     inquirer.prompt([{
         name: "userPickID",
         type: "input",
@@ -88,30 +88,80 @@ function add() {
         });
 }
 
-function addProduct(ID, amount){
-    connection.query("SELECT * from products WHERE item_id =" + ID, function(err,data){
+function addProduct(ID, amount) {
+    connection.query("SELECT * from products WHERE item_id =" + ID, function (err, data) {
         var total = parseInt(amount) + parseInt(data[0].stock_quantity);
         console.log("Total for Item ID" + ID + " is now " + total);
         quantityUpdated(ID, parseInt(amount), data[0].stock_quantity);
-      });
+    });
 }
 
-function  quantityUpdated(item, stockAmount, quantity){
-    
-      connection.query("UPDATE  products set ? where ?",
-      [
-        {
-          stock_quantity: quantity + stockAmount
-        },
-        {
-          item_id: item
-        }
-      ],
-      function(error,data){
-        if (error) throw error;
-        console.log("Updated successfully");
-        console.log("");
-        start();
-      });
-      
+function quantityUpdated(item, stockAmount, quantity) {
+
+    connection.query("UPDATE  products set ? where ?",
+        [
+            {
+                stock_quantity: quantity + stockAmount
+            },
+            {
+                item_id: item
+            }
+        ],
+        function (error, data) {
+            if (error) throw error;
+            console.log("Updated successfully");
+            console.log("");
+            start();
+        });
+
+}
+
+function addNew() {
+
+    inquirer.prompt([{
+        name: "userID",
+        type: "input",
+        message: "What is the new Product ID?"
+    },
+    {
+        name: "userProductName",
+        type: "input",
+        message: "What is the new Product name?"
+    },
+    {
+        name: "userDepartment",
+        type: "input",
+        message: "What is the Department?"
+    },
+    {
+        name: "userPrice",
+        type: "input",
+        message: "What is the Price?"
+    },
+    {
+        name: "userQuantity",
+        type: "input",
+        message: "What is the Quantity of the new Product?"
     }
+
+    ])
+    .then(function(answer) {
+        
+        connection.query(
+          "INSERT INTO products SET ?",
+          {
+            item_id: answer.userID,
+            product_name: answer.userProductName,
+            department_name: answer.userDepartment,
+            price: answer.userPrice,
+            stock_quantity: answer.userQuantity
+          },
+          function(err) {
+            if (err) throw err;
+            console.log("Your Product was created successfully!");
+           
+            start();
+          }
+        );
+      });
+}
